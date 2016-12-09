@@ -1,0 +1,10 @@
+@relation bearing
+
+@attribute bearings REAL
+
+@data
+-118.733
+59.694
+-55.107
+124.512
+66.360
