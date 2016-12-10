@@ -1,5 +1,0 @@
-GerardHomeWork:	-118.733°
-GerardWorkHome:	59.694°
-JosHomeWork:	-55.107°
-JosWorkHome:	124.512°
-PietWorkHome:	66.360°
