@@ -37,12 +37,12 @@ calculateBearings = function(lon2,lat2,lon1,lat1){
 
 calculateValues <- function(route){
   size<-nrow(route)
-  for(i in 1:size){
-    route$distance[i]<-calculateDistance(route$longitude[i+1], route$latitude[i+1], route$longitude[i], route$latitude[i])
-    route$bearing[i] <- calculateBearings(route$longitude[i+1], route$latitude[i+1], route$longitude[i], route$latitude[i])
+  for(i in 2:size){
+    route$distance[i]<-calculateDistance(route$longitude[i], route$latitude[i], route$longitude[i-1], route$latitude[i-1])
+    route$bearing[i] <- calculateBearings(route$longitude[i], route$latitude[i], route$longitude[i-1], route$latitude[i-1])
   }
-  route$distance[size]=0
-  route$bearing[size]=0
+  route$distance[1]=0
+  route$bearing[1]=0
   return(route)
 }
 
@@ -114,7 +114,7 @@ makeArff = function(){
     f <- paste(wd,"/",j,sep="")
     interpolatedRoute <- dataset(f)
     results <- rbind(results,transformFrame(calculateValues(interpolatedRoute),getName(f)))
-    results <- rbind(results,calculateJitter(interpolatedRoute,f,15))
+    results <- rbind(results,calculateJitter(interpolatedRoute,f,50))
   }
   write.arff(results,paste(wd,"/temp.arff",sep=""))
 }
@@ -122,13 +122,22 @@ makeArff = function(){
 buildTree = function(){
   wd <- getwd()
   data <- read.arff(paste(wd,"/temp.arff",sep=""))
-  data[,'train'] <- ifelse(runif(nrow(data))<0.70,1,0)
+  data[,'train'] <- ifelse(runif(nrow(data))<0.80,1,0)
   testData = data[data$train==0,]
   trainData = data[data$train==1,]
-  testData$result <- NULL
   testData$train<-NULL
+  checkSet <- as.data.frame(testData)
+  testData$result <- NULL
   trainData$train<-NULL
   j48 <<- J48(result~.,data = trainData)
+  # j <- 0
+  # for(i in 1:nrow(testData)){
+  #   if(predict(j48, testData[i,])[1] == checkSet[i,"result"]){
+  #     j = j + 1
+  #   }
+  # }
+  # print(j)
+  plot(j48)
   return(j48)
 }
 

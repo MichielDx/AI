@@ -9,48 +9,74 @@ correctFaultTimeBlock <- function(measurements){
 }
 
 kmean <- function(measurements, clusters){
+  temp <- as.data.frame(measurements)
+  measurements$Timestamp <- NULL
   if(clusters == 0){
     km    <- SimpleKMeans(measurements)
   } else {
     km    <- SimpleKMeans(measurements, Weka_control(N = clusters))
   }
+  measurements$Timestamp <- temp$Timestamp
   return(km)
 }
 
 canopy <- function(measurements, clusters){
   Canopy <- make_Weka_clusterer("weka.clusterers.Canopy")
+  temp <- as.data.frame(measurements)
+  measurements$Timestamp <- NULL
   if(clusters == 0){
     can <- Canopy(measurements)
   } else {
     can <- Canopy(measurements, Weka_control(N = clusters))
   }
+  measurements$Timestamp <- temp$Timestamp
   return(can)
 }
 
 xmeans <- function(measurements){
+  WPM('load-packages','XMeans')
   XMeansCluster <- make_Weka_clusterer("weka.clusterers.XMeans")
-    xm <- XMeansCluster(measurements)
+  xm <- XMeansCluster(measurements)
   return(xm)
 }
 
 kohonen <- function(measurements){
+  WPM('load-packages','SelfOrganizingMap')
   SelfOrganizingMap <- make_Weka_clusterer("weka.clusterers.SelfOrganizingMap")
   koh <- SelfOrganizingMap(measurements)
   return(koh)
 }
 
 init = function(){
-  list.of.packages <- c("foreign","RWeka","shiny","ggplot2")
+  list.of.packages <- c("foreign","RWeka","shiny","ggplot2","lubridate")
   new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
   if(length(new.packages)) install.packages(new.packages)
   library(foreign)
   library("RWeka")
+  library("lubridate")
 }
 
-init()
+getMeasurements = function(){
+  measurements <- readFile("C:/Users/Michiel/AI/AI2/temperature data.txt")
+  measurements<- correctFaultTimeBlock(measurements)
+  measurements<- secondsToTimestamp(measurements)
+  measurements$V1 <- NULL
+  colnames(measurements) <- c("Timestamp","Temperature")
+  return(measurements)
+}
 
-measurements <- readFile("C:/Users/Michiel/AI/AI2/temperature data.txt")
-measurements<- correctFaultTimeBlock(measurements)
-colnames(measurements) <- c("V1", "Timestamp","Temperature")
-measurements$V1 <- NULL
-write.arff(measurements,paste("C:/Users/Michiel/AI/AI2/temp.arff"))
+secondsToTimestamp = function(measurements){
+  measurements[,2] = as.POSIXct(seconds_to_period(measurements[,2]),origin='1960-01-01')
+  return(measurements)
+}
+
+main = function(){
+  init()
+  measuremenets <- getMeasurements()
+  
+  return(measuremenets)
+}
+setwd('C:/Users/Michiel/AI/AI2')
+measurements <- main()
+tempo$Timestamp <- NULL
+write.arff(tempo,paste(getwd(),"/temp.arff",sep=""))

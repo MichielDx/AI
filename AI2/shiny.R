@@ -1,27 +1,32 @@
 shiny = function(){
   library(shiny)
-  library(ggplot2)
+  library("ggplot2")
+  library("scales")
+  
+  if(!exists("main", mode="function")) source("C:/Users/Michiel/AI/AI2/program.R")
+  if(!exists("secondsToTimestamp", mode="function")) source("C:/Users/Michiel/AI/AI2/program.R")
+  measurements <- main()
+  
   ui <- fluidPage(
     headerPanel(""),
       fluidRow(
         h3("Temperature k-means clustering", align = "center"),
         column(12,numericInput('kmeansClusters', 'K-means clusters', 0,min = 0, max = 9), align="center"),
-        plotOutput('kmeans')
+        column(12,plotOutput('kmeans'))
       ),
     fluidRow(
       h3("Temperature canopy clustering", align = "center"),
       column(12,numericInput('canopyClusters', 'Canopy clusters', 0,min = 0, max = 9),align="center"),
-      plotOutput('canopy')
+      column(12,plotOutput('canopy'))
       ),
     fluidRow(
         h3("Temperature X-means clustering", align = "center"),
         plotOutput('xmeans')
-      ),
+      )    ,
     fluidRow(
       h3("Temperature self organizing map clustering", align = "center"),
       plotOutput('kohonen')
     )
-      
     
   )
   server <- function(input, output, session) {
@@ -30,7 +35,7 @@ shiny = function(){
         Timestamp <- measurements$Timestamp
         Temperature <- measurements$Temperature
         km$cluster <- as.factor(km$class_ids)
-        temp<- ggplot(measurements, aes(Timestamp, Temperature, color = km$cluster)) + geom_point()
+        temp<- ggplot(measurements, aes(Timestamp, Temperature, color = km$cluster)) + geom_point() + scale_x_datetime(labels = date_format("%H:%M:%S"))
         print(temp)
       })
       
@@ -63,3 +68,5 @@ shiny = function(){
   }
   shinyApp(ui, server)
 }
+
+shiny()

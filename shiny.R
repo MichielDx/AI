@@ -72,7 +72,7 @@ shiny = function(tree){
       points <- interpolateRoute(points)
       points <- calculateValues(points)
       points <- transformFrame(points,"")
-      prediction <- predict(j48,points)
+      prediction <- predict(tree,points)
       output$name <- renderText({
         paste("The most similiar route is ",prediction[[1]])
       })
