@@ -29,9 +29,9 @@ calculateDistance = function(long2,lat2,long1,lat1){
 
 calculateBearings = function(lon2,lat2,lon1,lat1){
   toDegrees = function(rad) {(rad *180) / (pi)}
-  y = sin(lon2-lon1) * cos(lat2);
-  x = cos(lat1)* sin(lat2) - sin(lat1)* cos(lat2)* cos(lon2-lon1);
-  bearing =  toDegrees(atan2(y, x));
+  y = sin(lon2-lon1) * cos(lat2)
+  x = cos(lat1)* sin(lat2) - sin(lat1)* cos(lat2)* cos(lon2-lon1)
+  bearing =  toDegrees(atan2(y, x))
   return(bearing)
 }
 
@@ -50,7 +50,6 @@ getName <- function(file){
   name <- strsplit(file,"/")
   name <- as.list(name[[1]])
   name <- name[length(name)]
-  #print(name)
   name <- strsplit(name[[1]],'.',fixed=TRUE)
   name <- as.list(name[[1]])[[1]]
   return(name)
@@ -76,20 +75,20 @@ transformFrame = function(dataframe,fileName){
 
 addJitter = function(interpolatedRoute){
   temp <- as.data.frame(interpolatedRoute)
-    for(i in 1:nrow(temp)){
-         temp$longitude[i] = temp$longitude[i] + (runif(1,-0.01,0.01))
-         temp$latitude[i] = temp$latitude[i]  + (runif(1,-0.01,0.01))
-    }
-    return(temp)
+  temp<- temp[1:nrow(temp),1:ncol(temp)] + runif(nrow(temp),-0.01,0.01)
+  return(temp)
+}
+
+calculateJitterXTimes = function(interpolate,file){
+  jittered <- addJitter(interpolate)
+  return(transformFrame(calculateValues(jittered),getName(file)))
 }
 
 calculateJitter = function(interpolatedRoute, file, amount){
   result <- data.frame()
   interpolate <- as.data.frame(interpolatedRoute)
-  for (i in 1:amount){
-    jittered <- addJitter(interpolate)
-    result <- rbind(result, transformFrame(calculateValues(jittered),getName(file)))
-  }
+  result<-do.call("rbind",lapply(1:amount, function(x) calculateJitterXTimes(interpolate,file)))
+
   return(result)
 }
 
@@ -104,25 +103,27 @@ init = function(){
   library(data.table)
 }
 
+makeDataFrame = function(file,results){
+  wd <- getwd()
+  file <- paste(wd,"/",file,sep="")
+  interpolatedRoute <- dataset(file)
+  results <- rbind(results,transformFrame(calculateValues(interpolatedRoute),getName(file)))
+  results <- rbind(results,calculateJitter(interpolatedRoute,file,50))
+}
+
 makeArff = function(){
-  results <- data.frame()
+  results<-data.frame()
   jitteredRoute <- data.frame(c)
   setwd("C:/Users/Michiel/AI/routes")
-  wd <- getwd()
-  files <- list.files(pattern="*.csv", path=wd)
-  for(j in files){
-    f <- paste(wd,"/",j,sep="")
-    interpolatedRoute <- dataset(f)
-    results <- rbind(results,transformFrame(calculateValues(interpolatedRoute),getName(f)))
-    results <- rbind(results,calculateJitter(interpolatedRoute,f,50))
-  }
-  write.arff(results,paste(wd,"/temp.arff",sep=""))
+  files <- list.files(pattern="*.csv", path=getwd())
+  results <- do.call("rbind", lapply(as.list(files),function(x) makeDataFrame(x,results)))
+  write.arff(results,paste(getwd(),"/temp.arff",sep=""))
 }
 
 buildTree = function(){
   wd <- getwd()
   data <- read.arff(paste(wd,"/temp.arff",sep=""))
-  data[,'train'] <- ifelse(runif(nrow(data))<0.80,1,0)
+  data[,'train'] <- ifelse(runif(nrow(data))<0.70,1,0)
   testData = data[data$train==0,]
   trainData = data[data$train==1,]
   testData$train<-NULL
@@ -130,13 +131,13 @@ buildTree = function(){
   testData$result <- NULL
   trainData$train<-NULL
   j48 <<- J48(result~.,data = trainData)
-  # j <- 0
-  # for(i in 1:nrow(testData)){
-  #   if(predict(j48, testData[i,])[1] == checkSet[i,"result"]){
-  #     j = j + 1
-  #   }
-  # }
-  # print(j)
+  j <- 0
+  for(i in 1:nrow(testData)){
+    if(predict(j48, testData[i,])[1] == checkSet[i,"result"]){
+      j = j + 1
+    }
+  }
+  print(j)
   plot(j48)
   return(j48)
 }

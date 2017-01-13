@@ -11,12 +11,12 @@ shiny = function(){
     headerPanel(""),
       fluidRow(
         h3("Temperature k-means clustering", align = "center"),
-        column(12,numericInput('kmeansClusters', 'K-means clusters', 0,min = 0, max = 9), align="center"),
+        column(12,numericInput('kmeansClusters', 'K-means clusters', 4,min = 0, max = 9), align="center"),
         column(12,plotOutput('kmeans'))
       ),
     fluidRow(
       h3("Temperature canopy clustering", align = "center"),
-      column(12,numericInput('canopyClusters', 'Canopy clusters', 0,min = 0, max = 9),align="center"),
+      column(12,numericInput('canopyClusters', 'Canopy clusters', 4,min = 0, max = 9),align="center"),
       column(12,plotOutput('canopy'))
       ),
     fluidRow(
@@ -44,7 +44,7 @@ shiny = function(){
         Timestamp <- measurements$Timestamp
         Temperature <- measurements$Temperature
         can$cluster <- as.factor(can$class_ids)
-        temp<- ggplot(measurements, aes(Timestamp, Temperature, color = can$cluster)) + geom_point()
+        temp<- ggplot(measurements, aes(Timestamp, Temperature, color = can$cluster)) + geom_point() + scale_x_datetime(labels = date_format("%H:%M:%S"))
         print(temp)
       })
       
@@ -53,7 +53,7 @@ shiny = function(){
         Timestamp <- measurements$Timestamp
         Temperature <- measurements$Temperature
         xm$cluster <- as.factor(xm$class_ids)
-        temp<- ggplot(measurements, aes(Timestamp, Temperature, color = xm$cluster)) + geom_point()
+        temp<- ggplot(measurements, aes(Timestamp, Temperature, color = xm$cluster)) + geom_point() + scale_x_datetime(labels = date_format("%H:%M:%S"))
         print(temp)
       })
       
@@ -62,7 +62,7 @@ shiny = function(){
         Timestamp <- measurements$Timestamp
         Temperature <- measurements$Temperature
         koh$cluster <- as.factor(koh$class_ids)
-        temp<- ggplot(measurements, aes(Timestamp, Temperature, color = koh$cluster)) + geom_point()
+        temp<- ggplot(measurements, aes(Timestamp, Temperature, color = koh$cluster)) + geom_point() + scale_x_datetime(labels = date_format("%H:%M:%S"))
         print(temp)
       })
   }

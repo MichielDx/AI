@@ -35,15 +35,21 @@ canopy <- function(measurements, clusters){
 
 xmeans <- function(measurements){
   WPM('load-packages','XMeans')
-  XMeansCluster <- make_Weka_clusterer("weka.clusterers.XMeans")
-  xm <- XMeansCluster(measurements)
+  XMeansCluster <- make_Weka_clusterer("weka.clusterers.XMeans")  
+  temp <- as.data.frame(measurements)
+  measurements$Timestamp <- NULL
+  xm <- XMeansCluster(measurements,c("-L", 4))
+  measurements$Timestamp <- temp$Timestamp
   return(xm)
 }
 
 kohonen <- function(measurements){
   WPM('load-packages','SelfOrganizingMap')
-  SelfOrganizingMap <- make_Weka_clusterer("weka.clusterers.SelfOrganizingMap")
-  koh <- SelfOrganizingMap(measurements)
+  SelfOrganizingMap <- make_Weka_clusterer("weka.clusterers.SelfOrganizingMap")  
+  temp <- as.data.frame(measurements)
+  measurements$Timestamp <- NULL
+  koh <- SelfOrganizingMap(measurements, c("-H",4, "-W", 3))
+  measurements$Timestamp <- temp$Timestamp
   return(koh)
 }
 
@@ -72,11 +78,6 @@ secondsToTimestamp = function(measurements){
 
 main = function(){
   init()
-  measuremenets <- getMeasurements()
-  
-  return(measuremenets)
+  measurements <- getMeasurements()
+  return(measurements)
 }
-setwd('C:/Users/Michiel/AI/AI2')
-measurements <- main()
-tempo$Timestamp <- NULL
-write.arff(tempo,paste(getwd(),"/temp.arff",sep=""))

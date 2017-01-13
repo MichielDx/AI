@@ -40,7 +40,8 @@ shiny = function(tree){
       mainPanel(
         leafletOutput("treemap")
       )
-    )
+    ),
+    br()
   )
   
   
@@ -61,6 +62,9 @@ shiny = function(tree){
       colnames(points) <- c("lat","lon")
       lon <- c(points$lon[1],points$lon[nrow(points)])
       lat <- c(points$lat[1],points$lat[nrow(points)])
+      output$treemap <- renderLeaflet({
+        leaflet() %>% addTiles()
+      })
       leaflet() %>%addTiles()%>%
         addPolylines(lng = points$lon, lat=points$lat) %>% addMarkers(lon,lat, popup = as.character(c("Start","End")))
     })
@@ -69,21 +73,23 @@ shiny = function(tree){
       leaflet() %>% addTiles()
     })
     observeEvent(input$submit, {
-      points <- interpolateRoute(points)
-      points <- calculateValues(points)
-      points <- transformFrame(points,"")
-      prediction <- predict(tree,points)
-      output$name <- renderText({
-        paste("The most similiar route is ",prediction[[1]])
-      })
-      route <- read.csv(paste(wd,"/",prediction[1],".csv",sep=""),header=FALSE)
-      lon <- c(route$V2[1],route$V2[nrow(route)])
-      lat <- c(route$V1[1],route$V1[nrow(route)])
-      output$treemap <- renderLeaflet({
-        leaflet() %>% addTiles()%>%
-        addPolylines(lng = route$V2, lat=route$V1) %>% addMarkers(lon,lat, popup = as.character(c("Start","End")))
-      })
-      })
+      if(nrow(points) != 0){
+        points <- interpolateRoute(points)
+        points <- calculateValues(points)
+        points <- transformFrame(points,"")
+        prediction <- predict(tree,points)
+        output$name <- renderText({
+          paste("The most similiar route is ",prediction[[1]])
+        })
+        route <- read.csv(paste(wd,"/",prediction[1],".csv",sep=""),header=FALSE)
+        lon <- c(route$V2[1],route$V2[nrow(route)])
+        lat <- c(route$V1[1],route$V1[nrow(route)])
+        output$treemap <- renderLeaflet({
+          leaflet() %>% addTiles()%>%
+          addPolylines(lng = route$V2, lat=route$V1) %>% addMarkers(lon,lat, popup = as.character(c("Start","End")))
+        })
+      }
+    })
     
     
   }
